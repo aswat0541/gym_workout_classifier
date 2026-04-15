@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workout Type Predictor | Gym Exercise Classification</title>
+    <title>Workout Type Predictor + Exercise Recommendations</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; max-width: 900px; margin: auto; padding: 20px; background: #f0f4f8; }
+        body { font-family: 'Segoe UI', sans-serif; max-width: 1000px; margin: auto; padding: 20px; background: #f0f4f8; }
         .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h1 { color: #1e3c72; text-align: center; }
         .form-row { display: flex; flex-wrap: wrap; margin-bottom: 15px; gap: 15px; }
@@ -14,7 +14,10 @@
         input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
         button { background: #2a5298; color: white; padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 15px; }
         button:hover { background: #1e3c72; }
-        .result { margin-top: 25px; padding: 20px; border-radius: 12px; text-align: center; font-size: 1.6rem; font-weight: bold; }
+        .result { margin-top: 25px; padding: 20px; border-radius: 12px; text-align: center; font-size: 1.4rem; font-weight: bold; }
+        .recommendations { margin-top: 20px; padding: 15px; border-radius: 12px; background: #f8f9fa; }
+        .recommendations h3 { margin-top: 0; color: #2a5298; }
+        .recommendations ul { margin-bottom: 0; }
         .Cardio { background: #d4edda; color: #155724; }
         .HIIT { background: #fff3cd; color: #856404; }
         .Strength { background: #d1ecf1; color: #0c5460; }
@@ -27,7 +30,7 @@
 <body>
 <div class="container">
     <h1>🏋️ Personalized Workout Type Recommender</h1>
-    <p>Enter your health metrics – the model will recommend <strong>Cardio, HIIT, Strength, or Yoga</strong>.</p>
+    <p>Enter your health metrics – the model will recommend <strong>Cardio, HIIT, Strength, or Yoga</strong> and suggest specific exercises.</p>
     <form id="predictionForm">
         <div class="form-row">
             <div class="form-group"><label>Age (18-80)</label><input type="number" id="age" value="30" min="18" max="80" required></div>
@@ -47,14 +50,47 @@
             <div class="form-group"><label>Water Intake (liters)</label><input type="number" id="water" value="2.5" min="1.0" max="5.0" step="0.1" required></div>
             <div class="form-group"><label>Workout Frequency (days/week)</label><input type="number" id="freq" value="3" min="1" max="7" required></div>
         </div>
-        <button type="button" onclick="predict()">🔮 Recommend Workout Type</button>
+        <button type="button" onclick="predict()">🔮 Recommend Workout Type & Exercises</button>
     </form>
     <div id="result" class="result"></div>
+    <div id="recommendations" class="recommendations" style="display:none;"></div>
     <div class="note">🤖 Model: Decision Tree (92% accuracy on test set) | Trained on 973 gym sessions</div>
 </div>
 <footer>Project for 24ADI017 - Machine Learning Techniques | GitHub Pages</footer>
 
 <script>
+// Mapping workout type to specific exercise recommendations
+const exerciseMap = {
+    "Cardio": [
+        "🏃‍♂️ Running / Jogging (30 mins)",
+        "🚴‍♀️ Cycling (stationary or outdoor)",
+        "🏊‍♂️ Swimming laps",
+        "🚶‍♂️ Brisk walking",
+        "🏸 Jump rope"
+    ],
+    "HIIT": [
+        "⚡ Burpees (30 sec on, 15 sec rest)",
+        "⚡ Mountain climbers",
+        "⚡ High knees",
+        "⚡ Squat jumps",
+        "⚡ Bicycle crunches"
+    ],
+    "Strength": [
+        "🏋️‍♂️ Push-ups (3 sets of 10-15)",
+        "🏋️‍♀️ Squats with dumbbells",
+        "🏋️‍♂️ Lunges",
+        "🏋️‍♀️ Deadlifts (light weight)",
+        "🏋️‍♂️ Plank (30-60 sec)"
+    ],
+    "Yoga": [
+        "🧘‍♀️ Sun Salutation (Surya Namaskar)",
+        "🧘‍♂️ Downward Dog (Adho Mukha Svanasana)",
+        "🧘‍♀️ Warrior I & II (Virabhadrasana)",
+        "🧘‍♂️ Tree pose (Vrikshasana)",
+        "🧘‍♀️ Child's pose (Balasana) for cool-down"
+    ]
+};
+
 function predict() {
     // Read inputs
     let age = parseFloat(document.getElementById('age').value);
@@ -98,9 +134,17 @@ function predict() {
     }
     let workout = node.class;
     
+    // Display result with color
     let resultDiv = document.getElementById('result');
-    resultDiv.innerHTML = `✅ Recommended Workout: <strong>${workout}</strong>`;
+    resultDiv.innerHTML = `✅ Recommended Workout Type: <strong>${workout}</strong>`;
     resultDiv.className = `result ${workout}`;
+    
+    // Display exercise recommendations
+    let recDiv = document.getElementById('recommendations');
+    let exercises = exerciseMap[workout] || ["No specific recommendations available."];
+    let listItems = exercises.map(ex => `<li>${ex}</li>`).join('');
+    recDiv.innerHTML = `<h3>💪 Recommended Exercises for ${workout}:</h3><ul>${listItems}</ul>`;
+    recDiv.style.display = 'block';
 }
 
 const featureNames = [
