@@ -64,17 +64,4 @@ The predictor:
 - Predicts the recommended workout type (Cardio, HIIT, Strength, Yoga)
 - Shows specific exercises you can perform for that workout type
 
----
 
-## 💻 How to Run Locally (for developers)
-
-### Prerequisites
-- Python 3.8+ installed
-- Git installed
-
-### Steps
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/aswat0541/gym_workout_classifier.git
-   cd gym_workout_classifier
