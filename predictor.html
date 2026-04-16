@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pre‑Session Workout Type Predictor</title>
+    <title>Post‑Session Workout Recognizer (No Calories)</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; max-width: 800px; margin: auto; padding: 20px; background: #f0f4f8; }
+        body { font-family: 'Segoe UI', sans-serif; max-width: 900px; margin: auto; padding: 20px; background: #f0f4f8; }
         .container { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         h1 { color: #1e3c72; text-align: center; }
-        .form-group { margin-bottom: 15px; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
+        .form-group { flex: 1; min-width: 180px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; }
         input, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
         button { background: #2a5298; color: white; padding: 12px; border: none; border-radius: 8px; cursor: pointer; width: 100%; font-size: 16px; margin-top: 15px; }
@@ -25,26 +26,36 @@
 </head>
 <body>
 <div class="container">
-    <h1>🏋️ Pre‑Session Workout Type Recommender</h1>
-    <p>Enter your static health data – the model will recommend a workout type <strong>before</strong> you exercise.</p>
+    <h1>🏋️ Post‑Session Workout Recognizer</h1>
+    <p>Enter your session data (without calories) – the model will identify the workout type.</p>
     <form id="predictionForm">
-        <div class="form-group"><label>Age (18-80)</label><input type="number" id="age" value="30" min="18" max="80" required></div>
-        <div class="form-group"><label>Gender</label><select id="gender"><option>Male</option><option>Female</option></select></div>
-        <div class="form-group"><label>Weight (kg)</label><input type="number" id="weight" value="70" min="30" max="150" step="0.1" required></div>
-        <div class="form-group"><label>Height (m)</label><input type="number" id="height" value="1.70" min="1.2" max="2.2" step="0.01" required></div>
-        <div class="form-group"><label>Resting BPM</label><input type="number" id="resting_bpm" value="65" min="40" max="100" required></div>
-        <div class="form-group"><label>Fat Percentage (%)</label><input type="number" id="fat" value="25" min="5" max="50" step="0.1" required></div>
-        <div class="form-group"><label>Workout Frequency (days/week)</label><input type="number" id="freq" value="3" min="1" max="7" required></div>
-        <button type="button" onclick="predict()">🔮 Recommend Workout Type</button>
+        <div class="form-row">
+            <div class="form-group"><label>Age</label><input type="number" id="age" value="30" required></div>
+            <div class="form-group"><label>Gender</label><select id="gender"><option>Male</option><option>Female</option></select></div>
+            <div class="form-group"><label>Weight (kg)</label><input type="number" id="weight" value="70" step="0.1" required></div>
+            <div class="form-group"><label>Height (m)</label><input type="number" id="height" value="1.70" step="0.01" required></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Resting BPM</label><input type="number" id="resting_bpm" value="65" required></div>
+            <div class="form-group"><label>Max BPM</label><input type="number" id="max_bpm" value="170" required></div>
+            <div class="form-group"><label>Avg BPM</label><input type="number" id="avg_bpm" value="140" required></div>
+            <div class="form-group"><label>Session Duration (hours)</label><input type="number" id="duration" value="1.0" step="0.1" required></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group"><label>Fat Percentage (%)</label><input type="number" id="fat" value="25" step="0.1" required></div>
+            <div class="form-group"><label>Water Intake (liters)</label><input type="number" id="water" value="2.5" step="0.1" required></div>
+            <div class="form-group"><label>Workout Frequency (days/week)</label><input type="number" id="freq" value="3" required></div>
+        </div>
+        <button type="button" onclick="predict()">🔍 Recognize Workout Type</button>
     </form>
     <div id="result" class="result"></div>
     <div id="recommendations" class="recommendations" style="display:none;"></div>
 </div>
-<footer>Model: Decision Tree (pre‑session features) | GitHub Pages</footer>
+<footer>Model: Decision Tree (no calories) | GitHub Pages</footer>
 
 <script>
 const exerciseMap = {
-    "Cardio": ["🏃‍♂️ Running / Jogging", "🚴‍♀️ Cycling", "🏊‍♂️ Swimming", "🚶‍♂️ Brisk walking"],
+    "Cardio": ["🏃‍♂️ Running", "🚴‍♀️ Cycling", "🏊‍♂️ Swimming", "🚶‍♂️ Walking"],
     "HIIT": ["⚡ Burpees", "⚡ Mountain climbers", "⚡ High knees", "⚡ Squat jumps"],
     "Strength": ["🏋️‍♂️ Push-ups", "🏋️‍♀️ Squats", "🏋️‍♂️ Lunges", "🏋️‍♀️ Plank"],
     "Yoga": ["🧘‍♀️ Sun Salutation", "🧘‍♂️ Downward Dog", "🧘‍♀️ Warrior pose", "🧘‍♂️ Tree pose"]
@@ -56,7 +67,11 @@ function predict() {
     let weight = parseFloat(document.getElementById('weight').value);
     let height = parseFloat(document.getElementById('height').value);
     let resting_bpm = parseFloat(document.getElementById('resting_bpm').value);
+    let max_bpm = parseFloat(document.getElementById('max_bpm').value);
+    let avg_bpm = parseFloat(document.getElementById('avg_bpm').value);
+    let duration = parseFloat(document.getElementById('duration').value);
     let fat = parseFloat(document.getElementById('fat').value);
+    let water = parseFloat(document.getElementById('water').value);
     let freq = parseFloat(document.getElementById('freq').value);
 
     let bmi = weight / (height * height);
@@ -67,8 +82,8 @@ function predict() {
     else bmi_class = 3;
     let gender_code = (gender === 'Male') ? 0 : 1;
 
-    const features = [age, gender_code, weight, height, resting_bpm, fat, freq, bmi, bmi_class];
-    const featureNames = ["Age", "Gender_Code", "Weight (kg)", "Height (m)", "Resting_BPM", "Fat_Percentage", "Workout_Frequency (days/week)", "BMI", "BMI_Class"];
+    const features = [age, gender_code, weight, height, resting_bpm, max_bpm, avg_bpm, duration, fat, water, freq, bmi, bmi_class];
+    const featureNames = ["Age", "Gender_Code", "Weight (kg)", "Height (m)", "Resting_BPM", "Max_BPM", "Avg_BPM", "Session_Duration (hours)", "Fat_Percentage", "Water_Intake (liters)", "Workout_Frequency (days/week)", "BMI", "BMI_Class"];
 
     let node = decisionTree;
     while (node.class === undefined) {
@@ -78,12 +93,12 @@ function predict() {
     }
     let workout = node.class;
     let resultDiv = document.getElementById('result');
-    resultDiv.innerHTML = `✅ Recommended Workout: <strong>${workout}</strong>`;
+    resultDiv.innerHTML = `✅ Recognized Workout: <strong>${workout}</strong>`;
     resultDiv.className = `result ${workout}`;
     
     let recDiv = document.getElementById('recommendations');
     let exercises = exerciseMap[workout] || [];
-    recDiv.innerHTML = `<h3>💪 Try these exercises:</h3><ul>${exercises.map(e => `<li>${e}</li>`).join('')}</ul>`;
+    recDiv.innerHTML = `<h3>💪 Example exercises:</h3><ul>${exercises.map(e => `<li>${e}</li>`).join('')}</ul>`;
     recDiv.style.display = 'block';
 }
 </script>
